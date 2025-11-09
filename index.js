@@ -66,11 +66,11 @@ const symbolSchema = new mongoose.Schema({
 });
 const Symbol = mongoose.model('symbol', symbolSchema);
 const calldata = async () => {
-  const result = await Symbol.find().skip(50).limit(25)
+  const result = await Symbol.find().skip(60).limit(30)
   result.forEach(async(item, index) => {
     const symbol = item['Symbol']
     await scrapeWithCheerio(symbol)
-    if (index == 24) {
+    if (index == 29) {
      bulkWrite()
     }
   })

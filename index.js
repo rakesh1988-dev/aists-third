@@ -20,9 +20,9 @@ async function scrapeWithCheerio(symbol) {
         text: $(element).text().trim(),
         html: $(element).html()
       });
-      console.log($(element).text().trim()?.slice(1), "$(element).text().trim()?.slice(1)?"?.replace(",",""))
+      console.log($(element).text().trim()?.slice(1), "$(element).text().trim()?.slice(1)?"?.replace(",", ""))
       bulkWriteArr.push({
-        symbol: symbol, value: Number($(element).text().trim()?.slice(1)?.replaceAll(",",""))
+        symbol: symbol, value: Number($(element).text().trim()?.slice(1)?.replaceAll(",", ""))
       })
     });
     return scrapedData;
@@ -32,9 +32,9 @@ async function scrapeWithCheerio(symbol) {
   }
 }
 
-const bulkWrite = async() => {
-  bulkWriteArr.forEach(async(item) => {
-    await Symbol.updateOne({Symbol:item?.symbol}, {$push:{Values:item?.value}})
+const bulkWrite = async () => {
+  bulkWriteArr.forEach(async (item) => {
+    await Symbol.updateOne({ Symbol: item?.symbol }, { $push: { Values: item?.value } })
   })
 }
 const connectDB = async () => {
@@ -55,8 +55,8 @@ const symbolSchema = new mongoose.Schema({
   Symbol: {
     type: String,
   },
-  Values:[Number],
-  Rank:Number,
+  Values: [Number],
+  Rank: Number,
   Name: {
     type: String,
     required: true
@@ -66,28 +66,29 @@ const symbolSchema = new mongoose.Schema({
 });
 const Symbol = mongoose.model('symbol', symbolSchema);
 const calldata = async () => {
-  const result = await Symbol.find().skip(60).limit(30)
-  result.forEach(async(item, index) => {
+  const result = await Symbol.find().skip(30).limit(15)
+  await result.forEach(async (item, index) => {
     const symbol = item['Symbol']
     await scrapeWithCheerio(symbol)
-    if (index == 29) {
-     bulkWrite()
-    }
+
   })
-  
+  await bulkWrite()
 }
 
 function isWithinTimeRange() {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    return (hours == 9 && minutes >= 15) || (hours == 10 && minutes <=25);
+  const temp = new Date().toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata"
+  });
+  const now = new Date(temp)
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
+  return (hours == 9 && minutes >= 15) || (hours == 10 && minutes <= 25);
 }
 
 cron.schedule('*/5 * * * *', () => {
-    if (isWithinTimeRange()) {
-        calldata()   
-    } 
+  if (isWithinTimeRange()) {
+    calldata()
+  }
 }, {
-    timezone: TIMEZONE
+  timezone: TIMEZONE
 });
